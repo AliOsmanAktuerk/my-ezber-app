@@ -1,0 +1,15 @@
+{
+  "name": "ezber-app",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/web"
+  ],
+  "scripts": {
+    "dev": "yarn workspace @ezber/web dev",
+    "build": "yarn workspace @ezber/web build",
+    "preview": "yarn workspace @ezber/web preview",
+    "api:dev": "mvn -Dmaven.repo.local=.m2/repository -f apps/api/pom.xml spring-boot:run",
+    "api:build": "mvn -Dmaven.repo.local=.m2/repository -f apps/api/pom.xml -DskipTests package"
+  }
+}
