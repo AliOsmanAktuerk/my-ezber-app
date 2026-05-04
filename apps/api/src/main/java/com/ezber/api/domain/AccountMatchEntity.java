@@ -10,14 +10,14 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "Account_match")
+@Table(name = "account_match")
 public class AccountMatchEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "Account_id", nullable = false)
+    @JoinColumn(name = "account_id", nullable = false)
     private AccountEntity account;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

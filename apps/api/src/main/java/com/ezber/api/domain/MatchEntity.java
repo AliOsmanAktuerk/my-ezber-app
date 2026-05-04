@@ -17,7 +17,7 @@ public class MatchEntity {
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "Account_id", nullable = false)
+    @JoinColumn(name = "account_id", nullable = false)
     private AccountEntity account;
 
     protected MatchEntity() {

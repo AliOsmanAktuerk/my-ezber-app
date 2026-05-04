@@ -9,10 +9,10 @@ import com.ezber.api.auth.dto.MessageResponse;
 import com.ezber.api.auth.dto.PasswordResetRequest;
 import com.ezber.api.auth.dto.RegisterRequest;
 import com.ezber.api.auth.dto.TokenRequest;
-import com.ezber.api.user.UserRepository;
+import com.ezber.api.domain.AccountRepository;
 import jakarta.validation.Valid;
 import java.security.Principal;
-import java.util.stream.Collectors;
+import java.util.Set;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,11 +25,11 @@ import org.springframework.http.HttpStatus;
 @RequestMapping("/api/auth")
 public class AuthController {
     private final AuthService authService;
-    private final UserRepository userRepository;
+    private final AccountRepository accountRepository;
 
-    public AuthController(AuthService authService, UserRepository userRepository) {
+    public AuthController(AuthService authService, AccountRepository accountRepository) {
         this.authService = authService;
-        this.userRepository = userRepository;
+        this.accountRepository = accountRepository;
     }
 
     @PostMapping("/register")
@@ -69,15 +69,15 @@ public class AuthController {
 
     @GetMapping("/me")
     public CurrentUserResponse me(Principal principal) {
-        var user = userRepository.findByEmail(principal.getName())
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        var account = accountRepository.findByEmail(principal.getName())
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
 
         return new CurrentUserResponse(
-            user.getId(),
-            user.getAccountHash(),
-            user.getEmail(),
-            user.getName(),
-            user.getRoles().stream().map(Enum::name).collect(Collectors.toSet())
+            account.getId().longValue(),
+            account.getHash(),
+            account.getEmail(),
+            account.getName(),
+            Set.of(account.getRolle().getName().toUpperCase())
         );
     }
 }

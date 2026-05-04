@@ -10,18 +10,18 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "Rolle_Berechtigungen")
+@Table(name = "rolle_berechtigungen")
 public class RolleBerechtigungEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "Rolle_id", nullable = false)
+    @JoinColumn(name = "rolle_id", nullable = false)
     private RolleEntity rolle;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "Berechtigungen_id", nullable = false)
+    @JoinColumn(name = "berechtigungen_id", nullable = false)
     private BerechtigungEntity berechtigung;
 
     protected RolleBerechtigungEntity() {

@@ -15,6 +15,64 @@ export type CurrentUser = {
   roles: string[];
 };
 
+export type Course = {
+  id: number;
+  publicCourse: boolean;
+  name: string;
+  description: string;
+};
+
+export type CoursePayload = {
+  publicCourse: boolean;
+  name: string;
+  description: string;
+};
+
+export type CourseItem = {
+  id: number;
+  name: string;
+  state: boolean;
+  kursId: number;
+};
+
+export type CourseItemPayload = {
+  name: string;
+  state: boolean;
+  kursId: number;
+};
+
+export type Room = {
+  id: number;
+  ownerId: number;
+  ownerEmail: string;
+  description: string;
+};
+
+export type RoomPayload = {
+  ownerId: number;
+  description: string;
+};
+
+export type Account = {
+  id: number;
+  email: string;
+  name: string;
+  hash: string;
+  rolleId: number;
+  rolleName: string;
+};
+
+export type AccountPayload = {
+  email: string;
+  password: string;
+  rolleId: number;
+};
+
+export type Role = {
+  id: number;
+  name: string;
+};
+
 export type MessageResponse = {
   message: string;
 };
@@ -96,6 +154,128 @@ export function googleLogin(payload: { credential: string }) {
 
 export function getCurrentUser(token: string) {
   return request<CurrentUser>('/api/auth/me', {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+export function getCourses(token: string) {
+  return request<Course[]>('/api/courses', {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+export function createCourse(token: string, payload: CoursePayload) {
+  return request<Course>('/api/courses', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+}
+
+export function updateCourse(token: string, id: number, payload: CoursePayload) {
+  return request<Course>(`/api/courses/${id}`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+}
+
+export function getCourseItems(token: string, courseId?: number) {
+  const query = courseId ? `?kursId=${courseId}` : '';
+
+  return request<CourseItem[]>(`/api/course-items${query}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+export function createCourseItem(token: string, payload: CourseItemPayload) {
+  return request<CourseItem>('/api/course-items', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+}
+
+export function updateCourseItem(token: string, id: number, payload: CourseItemPayload) {
+  return request<CourseItem>(`/api/course-items/${id}`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+}
+
+export function getRooms(token: string) {
+  return request<Room[]>('/api/rooms', {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+export function createRoom(token: string, payload: RoomPayload) {
+  return request<Room>('/api/rooms', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+}
+
+export function updateRoom(token: string, id: number, payload: RoomPayload) {
+  return request<Room>(`/api/rooms/${id}`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+}
+
+export function getAccounts(token: string) {
+  return request<Account[]>('/api/accounts', {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+export function createAccount(token: string, payload: AccountPayload) {
+  return request<Account>('/api/accounts', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+}
+
+export function updateAccount(token: string, id: number, payload: AccountPayload) {
+  return request<Account>(`/api/accounts/${id}`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+}
+
+export function getRoles(token: string) {
+  return request<Role[]>('/api/roles', {
     headers: {
       Authorization: `Bearer ${token}`,
     },

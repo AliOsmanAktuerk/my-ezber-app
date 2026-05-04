@@ -17,7 +17,7 @@ type GoogleButtonRenderer = {
       size: 'large';
       text: 'continue_with';
       shape: 'rectangular';
-      width: string;
+      width: number;
     },
   ) => void;
 };
@@ -43,8 +43,14 @@ const googleScriptId = 'google-identity-services';
 export function GoogleSignInButton({ onCredential, onError }: GoogleSignInButtonProps) {
   const { t } = useLanguage();
   const buttonRef = useRef<HTMLDivElement | null>(null);
+  const initializedRef = useRef(false);
+  const handlersRef = useRef({ onCredential, onError, t });
   const [scriptReady, setScriptReady] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    handlersRef.current = { onCredential, onError, t };
+  }, [onCredential, onError, t]);
 
   useEffect(() => {
     if (!googleClientId) {
@@ -78,19 +84,24 @@ export function GoogleSignInButton({ onCredential, onError }: GoogleSignInButton
       return;
     }
 
+    if (initializedRef.current) {
+      return;
+    }
+
+    initializedRef.current = true;
     buttonRef.current.innerHTML = '';
     window.google.accounts.id.initialize({
       client_id: googleClientId,
       callback: async (response) => {
         if (!response.credential) {
-          onError(t('googleMissingCredential') as string);
+          handlersRef.current.onError(handlersRef.current.t('googleMissingCredential') as string);
           return;
         }
 
         setLoading(true);
 
         try {
-          await onCredential(response.credential);
+          await handlersRef.current.onCredential(response.credential);
         } finally {
           setLoading(false);
         }
@@ -101,9 +112,9 @@ export function GoogleSignInButton({ onCredential, onError }: GoogleSignInButton
       size: 'large',
       text: 'continue_with',
       shape: 'rectangular',
-      width: '100%',
+      width: Math.max(buttonRef.current.offsetWidth, 240),
     });
-  }, [onCredential, onError, scriptReady, t]);
+  }, [scriptReady, googleClientId]);
 
   if (!googleClientId) {
     return (

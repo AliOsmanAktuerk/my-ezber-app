@@ -10,6 +10,7 @@ final class DomainMapper {
         return new AccountResponse(
             account.getId(),
             account.getEmail(),
+            account.getName(),
             account.getHash(),
             account.getRolle().getId(),
             account.getRolle().getName()

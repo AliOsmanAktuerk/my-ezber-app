@@ -9,30 +9,33 @@ import com.ezber.api.auth.dto.MessageResponse;
 import com.ezber.api.auth.dto.PasswordResetRequest;
 import com.ezber.api.auth.dto.RegisterRequest;
 import com.ezber.api.auth.dto.TokenRequest;
-import com.ezber.api.security.AppUserDetailsService;
+import com.ezber.api.domain.AccountEntity;
+import com.ezber.api.domain.AccountRepository;
+import com.ezber.api.domain.RolleEntity;
+import com.ezber.api.domain.RolleRepository;
+import com.ezber.api.security.AccountDetailsService;
 import com.ezber.api.security.JwtService;
-import com.ezber.api.user.AppUser;
-import com.ezber.api.user.Role;
-import com.ezber.api.user.UserRepository;
-import java.util.Set;
-import java.util.UUID;
 import java.time.Instant;
+import java.util.UUID;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.http.HttpStatus;
 
 @Service
 public class AuthService {
-    private final UserRepository userRepository;
+    private static final String DEFAULT_ROLE_NAME = "USER";
+
+    private final AccountRepository accountRepository;
+    private final RolleRepository rolleRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
-    private final AppUserDetailsService userDetailsService;
+    private final AccountDetailsService accountDetailsService;
     private final JwtService jwtService;
     private final GoogleTokenVerifier googleTokenVerifier;
     private final TokenService tokenService;
@@ -40,20 +43,22 @@ public class AuthService {
     private final String frontendBaseUrl;
 
     public AuthService(
-        UserRepository userRepository,
+        AccountRepository accountRepository,
+        RolleRepository rolleRepository,
         PasswordEncoder passwordEncoder,
         AuthenticationManager authenticationManager,
-        AppUserDetailsService userDetailsService,
+        AccountDetailsService accountDetailsService,
         JwtService jwtService,
         GoogleTokenVerifier googleTokenVerifier,
         TokenService tokenService,
         AuthMailService authMailService,
         @Value("${app.frontend.base-url}") String frontendBaseUrl
     ) {
-        this.userRepository = userRepository;
+        this.accountRepository = accountRepository;
+        this.rolleRepository = rolleRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
-        this.userDetailsService = userDetailsService;
+        this.accountDetailsService = accountDetailsService;
         this.jwtService = jwtService;
         this.googleTokenVerifier = googleTokenVerifier;
         this.tokenService = tokenService;
@@ -63,39 +68,39 @@ public class AuthService {
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        var normalizedEmail = request.email().trim().toLowerCase();
+        var normalizedEmail = normalizeEmail(request.email());
         var displayName = normalizeDisplayName(request.name());
 
-        if (userRepository.existsByEmail(normalizedEmail)) {
+        if (accountRepository.existsByEmail(normalizedEmail)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "E-Mail wird bereits verwendet");
         }
 
-        var user = new AppUser(
-            displayName,
+        var account = new AccountEntity(
             normalizedEmail,
+            displayName,
             passwordEncoder.encode(request.password()),
-            Set.of(Role.USER)
+            defaultRole()
         );
-        sendEmailVerification(user);
-        userRepository.save(user);
+        sendEmailVerification(account);
+        accountRepository.save(account);
 
-        return new AuthResponse("", user.getAccountHash(), user.getEmail(), user.getName());
+        return new AuthResponse("", account.getHash(), account.getEmail(), account.getName());
     }
 
     @Transactional
     public AuthResponse googleLogin(GoogleLoginRequest request) {
         var googleUser = googleTokenVerifier.verify(request.credential());
-        var normalizedEmail = googleUser.email().trim().toLowerCase();
-        var user = userRepository.findByEmail(normalizedEmail)
-            .orElseGet(() -> createGoogleUser(googleUser, normalizedEmail));
-        user.markEmailVerifiedForTrustedProvider();
-        var userDetails = userDetailsService.loadUserByUsername(user.getEmail());
+        var normalizedEmail = normalizeEmail(googleUser.email());
+        var account = accountRepository.findByEmail(normalizedEmail)
+            .orElseGet(() -> createGoogleAccount(googleUser, normalizedEmail));
+        account.markEmailVerifiedForTrustedProvider();
+        var accountDetails = accountDetailsService.loadUserByUsername(account.getEmail());
 
-        return toAuthResponse(user, jwtService.createToken(userDetails));
+        return toAuthResponse(account, jwtService.createToken(accountDetails));
     }
 
     public AuthResponse login(LoginRequest request) {
-        var normalizedEmail = request.email().trim().toLowerCase();
+        var normalizedEmail = normalizeEmail(request.email());
 
         try {
             authenticationManager.authenticate(
@@ -105,34 +110,34 @@ public class AuthService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "E-Mail oder Passwort ist falsch");
         }
 
-        var user = userRepository.findByEmail(normalizedEmail)
+        var account = accountRepository.findByEmail(normalizedEmail)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Ungültige Zugangsdaten"));
-        if (!user.isEmailVerified()) {
+        if (!account.isEmailVerified()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Bitte bestätige zuerst deine E-Mail-Adresse");
         }
-        var userDetails = userDetailsService.loadUserByUsername(user.getEmail());
+        var accountDetails = accountDetailsService.loadUserByUsername(account.getEmail());
 
-        return toAuthResponse(user, jwtService.createToken(userDetails));
+        return toAuthResponse(account, jwtService.createToken(accountDetails));
     }
 
     @Transactional
     public AuthResponse verifyEmail(TokenRequest request) {
-        var user = userRepository.findByEmailVerificationTokenHash(tokenService.hash(request.token()))
+        var account = accountRepository.findByEmailVerificationTokenHash(tokenService.hash(request.token()))
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bestätigungslink ist ungültig"));
 
-        if (user.getEmailVerificationTokenExpiresAt() == null || user.getEmailVerificationTokenExpiresAt().isBefore(Instant.now())) {
+        if (account.getEmailVerificationTokenExpiresAt() == null || account.getEmailVerificationTokenExpiresAt().isBefore(Instant.now())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bestätigungslink ist abgelaufen");
         }
 
-        user.markEmailVerified();
-        var userDetails = userDetailsService.loadUserByUsername(user.getEmail());
-        return toAuthResponse(user, jwtService.createToken(userDetails));
+        account.markEmailVerified();
+        var accountDetails = accountDetailsService.loadUserByUsername(account.getEmail());
+        return toAuthResponse(account, jwtService.createToken(accountDetails));
     }
 
     @Transactional
     public MessageResponse resendVerification(EmailRequest request) {
-        userRepository.findByEmail(normalizeEmail(request.email()))
-            .filter(user -> !user.isEmailVerified())
+        accountRepository.findByEmail(normalizeEmail(request.email()))
+            .filter(account -> !account.isEmailVerified())
             .ifPresent(this::sendEmailVerification);
 
         return new MessageResponse("Wenn die E-Mail existiert und noch nicht bestätigt ist, wurde ein neuer Link versendet");
@@ -140,8 +145,8 @@ public class AuthService {
 
     @Transactional
     public MessageResponse forgotPassword(EmailRequest request) {
-        userRepository.findByEmail(normalizeEmail(request.email()))
-            .filter(AppUser::isEmailVerified)
+        accountRepository.findByEmail(normalizeEmail(request.email()))
+            .filter(AccountEntity::isEmailVerified)
             .ifPresent(this::sendPasswordReset);
 
         return new MessageResponse("Wenn die E-Mail existiert, wurde ein Link zum Zurücksetzen versendet");
@@ -149,34 +154,39 @@ public class AuthService {
 
     @Transactional
     public MessageResponse resetPassword(PasswordResetRequest request) {
-        var user = userRepository.findByPasswordResetTokenHash(tokenService.hash(request.token()))
+        var account = accountRepository.findByPasswordResetTokenHash(tokenService.hash(request.token()))
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Reset-Link ist ungültig"));
 
-        if (user.getPasswordResetTokenExpiresAt() == null || user.getPasswordResetTokenExpiresAt().isBefore(Instant.now())) {
+        if (account.getPasswordResetTokenExpiresAt() == null || account.getPasswordResetTokenExpiresAt().isBefore(Instant.now())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Reset-Link ist abgelaufen");
         }
 
-        user.changePassword(passwordEncoder.encode(request.password()));
+        account.changePassword(passwordEncoder.encode(request.password()));
         return new MessageResponse("Passwort wurde aktualisiert");
     }
 
-    private AuthResponse toAuthResponse(AppUser user, String token) {
-        return new AuthResponse(token, user.getAccountHash(), user.getEmail(), user.getName());
+    private AuthResponse toAuthResponse(AccountEntity account, String token) {
+        return new AuthResponse(token, account.getHash(), account.getEmail(), account.getName());
     }
 
-    private AppUser createGoogleUser(GoogleUser googleUser, String normalizedEmail) {
+    private AccountEntity createGoogleAccount(GoogleUser googleUser, String normalizedEmail) {
         var displayName = googleUser.name() == null || googleUser.name().isBlank()
             ? normalizedEmail.substring(0, normalizedEmail.indexOf('@'))
             : normalizeDisplayName(googleUser.name());
-        var user = new AppUser(
-            displayName,
+        var account = new AccountEntity(
             normalizedEmail,
+            displayName,
             passwordEncoder.encode(UUID.randomUUID().toString()),
-            Set.of(Role.USER)
+            defaultRole()
         );
-        user.markEmailVerifiedForTrustedProvider();
+        account.markEmailVerifiedForTrustedProvider();
 
-        return userRepository.save(user);
+        return accountRepository.save(account);
+    }
+
+    private RolleEntity defaultRole() {
+        return rolleRepository.findByNameIgnoreCase(DEFAULT_ROLE_NAME)
+            .orElseGet(() -> rolleRepository.save(new RolleEntity(DEFAULT_ROLE_NAME)));
     }
 
     private String normalizeDisplayName(String name) {
@@ -187,22 +197,22 @@ public class AuthService {
         return email.trim().toLowerCase();
     }
 
-    private void sendEmailVerification(AppUser user) {
+    private void sendEmailVerification(AccountEntity account) {
         var token = tokenService.createToken();
-        user.setEmailVerificationToken(tokenService.hash(token), Instant.now().plusSeconds(86400));
+        account.setEmailVerificationToken(tokenService.hash(token), Instant.now().plusSeconds(86400));
         authMailService.sendEmailVerification(
-            user.getEmail(),
-            user.getName(),
+            account.getEmail(),
+            account.getName(),
             frontendBaseUrl + "/verify-email?token=" + token
         );
     }
 
-    private void sendPasswordReset(AppUser user) {
+    private void sendPasswordReset(AccountEntity account) {
         var token = tokenService.createToken();
-        user.setPasswordResetToken(tokenService.hash(token), Instant.now().plusSeconds(3600));
+        account.setPasswordResetToken(tokenService.hash(token), Instant.now().plusSeconds(3600));
         authMailService.sendPasswordReset(
-            user.getEmail(),
-            user.getName(),
+            account.getEmail(),
+            account.getName(),
             frontendBaseUrl + "/reset-password?token=" + token
         );
     }

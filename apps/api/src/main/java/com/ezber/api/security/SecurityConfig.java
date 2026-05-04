@@ -24,16 +24,16 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableWebSecurity
 public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final AppUserDetailsService userDetailsService;
+    private final AccountDetailsService accountDetailsService;
     private final String allowedOrigins;
 
     public SecurityConfig(
         JwtAuthenticationFilter jwtAuthenticationFilter,
-        AppUserDetailsService userDetailsService,
+        AccountDetailsService accountDetailsService,
         @Value("${app.cors.allowed-origins}") String allowedOrigins
     ) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-        this.userDetailsService = userDetailsService;
+        this.accountDetailsService = accountDetailsService;
         this.allowedOrigins = allowedOrigins;
     }
 
@@ -71,7 +71,7 @@ public class SecurityConfig {
     @Bean
     public AuthenticationProvider authenticationProvider() {
         var provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(userDetailsService);
+        provider.setUserDetailsService(accountDetailsService);
         provider.setPasswordEncoder(passwordEncoder());
         return provider;
     }

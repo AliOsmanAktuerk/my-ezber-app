@@ -1,6 +1,5 @@
-package com.ezber.api.user;
+package com.ezber.api.domain;
 
-import java.util.Set;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -9,21 +8,24 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 @Component
-public class AdminUserSeeder implements ApplicationRunner {
-    private final UserRepository userRepository;
+public class AdminAccountSeeder implements ApplicationRunner {
+    private final AccountRepository accountRepository;
+    private final RolleRepository rolleRepository;
     private final PasswordEncoder passwordEncoder;
     private final String adminEmail;
     private final String adminPassword;
     private final String adminName;
 
-    public AdminUserSeeder(
-        UserRepository userRepository,
+    public AdminAccountSeeder(
+        AccountRepository accountRepository,
+        RolleRepository rolleRepository,
         PasswordEncoder passwordEncoder,
         @Value("${app.admin.email}") String adminEmail,
         @Value("${app.admin.password}") String adminPassword,
         @Value("${app.admin.name}") String adminName
     ) {
-        this.userRepository = userRepository;
+        this.accountRepository = accountRepository;
+        this.rolleRepository = rolleRepository;
         this.passwordEncoder = passwordEncoder;
         this.adminEmail = adminEmail;
         this.adminPassword = adminPassword;
@@ -33,22 +35,25 @@ public class AdminUserSeeder implements ApplicationRunner {
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
-        if (userRepository.existsByRolesContaining(Role.ADMIN)) {
+        var adminRole = rolleRepository.findByNameIgnoreCase("ADMIN")
+            .orElseGet(() -> rolleRepository.save(new RolleEntity("ADMIN")));
+
+        if (accountRepository.existsByRolle_NameIgnoreCase("ADMIN")) {
             return;
         }
 
         var normalizedEmail = adminEmail.trim().toLowerCase();
-        if (userRepository.existsByEmail(normalizedEmail)) {
+        if (accountRepository.existsByEmail(normalizedEmail)) {
             return;
         }
 
-        var admin = new AppUser(
-            adminName.trim(),
+        var admin = new AccountEntity(
             normalizedEmail,
+            adminName.trim(),
             passwordEncoder.encode(adminPassword),
-            Set.of(Role.ADMIN, Role.USER)
+            adminRole
         );
         admin.markEmailVerifiedForTrustedProvider();
-        userRepository.save(admin);
+        accountRepository.save(admin);
     }
 }

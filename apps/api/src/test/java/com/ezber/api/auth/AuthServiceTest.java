@@ -10,14 +10,14 @@ import com.ezber.api.auth.GoogleTokenVerifier.GoogleUser;
 import com.ezber.api.auth.dto.GoogleLoginRequest;
 import com.ezber.api.auth.dto.PasswordResetRequest;
 import com.ezber.api.auth.dto.RegisterRequest;
-import com.ezber.api.security.AppUserDetailsService;
+import com.ezber.api.domain.AccountEntity;
+import com.ezber.api.domain.AccountRepository;
+import com.ezber.api.domain.RolleEntity;
+import com.ezber.api.domain.RolleRepository;
+import com.ezber.api.security.AccountDetailsService;
 import com.ezber.api.security.JwtService;
-import com.ezber.api.user.AppUser;
-import com.ezber.api.user.Role;
-import com.ezber.api.user.UserRepository;
 import java.time.Instant;
 import java.util.Optional;
-import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,13 +31,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
     @Mock
-    private UserRepository userRepository;
+    private AccountRepository accountRepository;
+    @Mock
+    private RolleRepository rolleRepository;
     @Mock
     private PasswordEncoder passwordEncoder;
     @Mock
     private AuthenticationManager authenticationManager;
     @Mock
-    private AppUserDetailsService userDetailsService;
+    private AccountDetailsService accountDetailsService;
     @Mock
     private JwtService jwtService;
     @Mock
@@ -52,10 +54,11 @@ class AuthServiceTest {
     @BeforeEach
     void setUp() {
         service = new AuthService(
-            userRepository,
+            accountRepository,
+            rolleRepository,
             passwordEncoder,
             authenticationManager,
-            userDetailsService,
+            accountDetailsService,
             jwtService,
             googleTokenVerifier,
             tokenService,
@@ -65,26 +68,29 @@ class AuthServiceTest {
     }
 
     @Test
-    void registerCreatesUnverifiedUserAndSendsVerificationMail() {
-        when(userRepository.existsByEmail("ada@example.com")).thenReturn(false);
+    void registerCreatesUnverifiedAccountAndSendsVerificationMail() {
+        var userRole = new RolleEntity("USER");
+        when(accountRepository.existsByEmail("ada@example.com")).thenReturn(false);
+        when(rolleRepository.findByNameIgnoreCase("USER")).thenReturn(Optional.of(userRole));
         when(passwordEncoder.encode("password123")).thenReturn("hashed-password");
         when(tokenService.createToken()).thenReturn("email-token");
         when(tokenService.hash("email-token")).thenReturn("email-token-hash");
-        when(userRepository.save(any(AppUser.class))).thenAnswer(invocation -> {
-            var user = (AppUser) invocation.getArgument(0);
-            user.assignAccountHashIfMissing();
-            return user;
+        when(accountRepository.save(any(AccountEntity.class))).thenAnswer(invocation -> {
+            var account = (AccountEntity) invocation.getArgument(0);
+            account.assignHashIfMissing();
+            return account;
         });
 
         var response = service.register(new RegisterRequest(" Ada Lovelace ", "ADA@Example.COM", "password123"));
 
-        var userCaptor = ArgumentCaptor.forClass(AppUser.class);
-        verify(userRepository).save(userCaptor.capture());
-        var user = userCaptor.getValue();
+        var accountCaptor = ArgumentCaptor.forClass(AccountEntity.class);
+        verify(accountRepository).save(accountCaptor.capture());
+        var account = accountCaptor.getValue();
         assertThat(response.token()).isEmpty();
         assertThat(response.email()).isEqualTo("ada@example.com");
-        assertThat(user.isEmailVerified()).isFalse();
-        assertThat(user.getEmailVerificationTokenHash()).isEqualTo("email-token-hash");
+        assertThat(response.name()).isEqualTo("Ada Lovelace");
+        assertThat(account.isEmailVerified()).isFalse();
+        assertThat(account.getEmailVerificationTokenHash()).isEqualTo("email-token-hash");
         verify(authMailService).sendEmailVerification(
             "ada@example.com",
             "Ada Lovelace",
@@ -93,7 +99,8 @@ class AuthServiceTest {
     }
 
     @Test
-    void googleLoginCreatesLocalUserAndReturnsJwt() {
+    void googleLoginCreatesAccountAndReturnsJwt() {
+        var userRole = new RolleEntity("USER");
         var userDetails = User.withUsername("ada@example.com")
             .password("hashed-google-password")
             .authorities("ROLE_USER")
@@ -101,14 +108,15 @@ class AuthServiceTest {
 
         when(googleTokenVerifier.verify("google-id-token"))
             .thenReturn(new GoogleUser(" Ada Lovelace ", "ADA@Example.COM"));
-        when(userRepository.findByEmail("ada@example.com")).thenReturn(Optional.empty());
+        when(accountRepository.findByEmail("ada@example.com")).thenReturn(Optional.empty());
+        when(rolleRepository.findByNameIgnoreCase("USER")).thenReturn(Optional.of(userRole));
         when(passwordEncoder.encode(anyString())).thenReturn("hashed-google-password");
-        when(userRepository.save(any(AppUser.class))).thenAnswer(invocation -> {
-            var user = (AppUser) invocation.getArgument(0);
-            user.assignAccountHashIfMissing();
-            return user;
+        when(accountRepository.save(any(AccountEntity.class))).thenAnswer(invocation -> {
+            var account = (AccountEntity) invocation.getArgument(0);
+            account.assignHashIfMissing();
+            return account;
         });
-        when(userDetailsService.loadUserByUsername("ada@example.com")).thenReturn(userDetails);
+        when(accountDetailsService.loadUserByUsername("ada@example.com")).thenReturn(userDetails);
         when(jwtService.createToken(userDetails)).thenReturn("local-jwt");
 
         var response = service.googleLogin(new GoogleLoginRequest("google-id-token"));
@@ -117,13 +125,13 @@ class AuthServiceTest {
         assertThat(response.email()).isEqualTo("ada@example.com");
         assertThat(response.name()).isEqualTo("Ada Lovelace");
         assertThat(response.accountHash()).isNotBlank();
-        verify(userRepository).save(any(AppUser.class));
+        verify(accountRepository).save(any(AccountEntity.class));
     }
 
     @Test
-    void googleLoginReusesExistingUser() {
-        var user = new AppUser("Existing User", "existing@example.com", "hash", Set.of(Role.USER));
-        user.assignAccountHashIfMissing();
+    void googleLoginReusesExistingAccount() {
+        var account = new AccountEntity("existing@example.com", "Existing User", "hash", new RolleEntity("USER"));
+        account.assignHashIfMissing();
         var userDetails = User.withUsername("existing@example.com")
             .password("hash")
             .authorities("ROLE_USER")
@@ -131,8 +139,8 @@ class AuthServiceTest {
 
         when(googleTokenVerifier.verify("google-id-token"))
             .thenReturn(new GoogleUser("Existing User", "existing@example.com"));
-        when(userRepository.findByEmail("existing@example.com")).thenReturn(Optional.of(user));
-        when(userDetailsService.loadUserByUsername("existing@example.com")).thenReturn(userDetails);
+        when(accountRepository.findByEmail("existing@example.com")).thenReturn(Optional.of(account));
+        when(accountDetailsService.loadUserByUsername("existing@example.com")).thenReturn(userDetails);
         when(jwtService.createToken(userDetails)).thenReturn("local-jwt");
 
         var response = service.googleLogin(new GoogleLoginRequest("google-id-token"));
@@ -144,17 +152,17 @@ class AuthServiceTest {
 
     @Test
     void resetPasswordUpdatesPasswordAndClearsToken() {
-        var user = new AppUser("Existing User", "existing@example.com", "old-hash", Set.of(Role.USER));
-        user.setPasswordResetToken("reset-token-hash", Instant.now().plusSeconds(60));
+        var account = new AccountEntity("existing@example.com", "Existing User", "old-hash", new RolleEntity("USER"));
+        account.setPasswordResetToken("reset-token-hash", Instant.now().plusSeconds(60));
 
         when(tokenService.hash("reset-token")).thenReturn("reset-token-hash");
-        when(userRepository.findByPasswordResetTokenHash("reset-token-hash")).thenReturn(Optional.of(user));
+        when(accountRepository.findByPasswordResetTokenHash("reset-token-hash")).thenReturn(Optional.of(account));
         when(passwordEncoder.encode("new-password")).thenReturn("new-hash");
 
         var response = service.resetPassword(new PasswordResetRequest("reset-token", "new-password"));
 
         assertThat(response.message()).isEqualTo("Passwort wurde aktualisiert");
-        assertThat(user.getPassword()).isEqualTo("new-hash");
-        assertThat(user.getPasswordResetTokenHash()).isNull();
+        assertThat(account.getPassword()).isEqualTo("new-hash");
+        assertThat(account.getPasswordResetTokenHash()).isNull();
     }
 }
