@@ -18,7 +18,7 @@ export function PublicHomePage() {
             <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-600 text-white">
               <ShieldCheck size={20} aria-hidden="true" />
             </span>
-            My Cami classroom
+            My Ezber App
           </Link>
           <div className="flex items-center gap-3">
             <LanguageSelect />
@@ -57,7 +57,7 @@ export function PublicHomePage() {
               <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-600 text-white">
                 <ShieldCheck size={18} aria-hidden="true" />
               </span>
-              My Cami classroom
+              My Ezber App
             </div>
             <p className="mt-4 max-w-md text-sm leading-7 text-slate-300">
               {t('footerText')}

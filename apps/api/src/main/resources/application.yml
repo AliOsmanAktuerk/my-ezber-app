@@ -53,16 +53,16 @@ app:
     jwt-secret: ${JWT_SECRET:change-this-development-secret-change-this-development-secret}
     jwt-expiration-ms: ${JWT_EXPIRATION_MS:86400000}
   google:
-    client-id: ${GOOGLE_CLIENT_ID:502571807799-4vn2lsldle120j68t700or8nlk2m5plb.apps.googleusercontent.com}
+    client-id: ${GOOGLE_CLIENT_ID:}
   frontend:
     base-url: ${FRONTEND_BASE_URL:http://localhost:3000}
   mail:
-    from: ${MAIL_FROM:no-reply@my-cami-classroom.local}
-    sender-name: ${MAIL_SENDER_NAME:My Cami classroom}
+    from: ${MAIL_FROM:no-reply@my-ezber-app.local}
+    sender-name: ${MAIL_SENDER_NAME:My Ezber App}
     imprint:
-      name: ${MAIL_IMPRINT_NAME:My Cami classroom}
+      name: ${MAIL_IMPRINT_NAME:My Ezber App}
       address: ${MAIL_IMPRINT_ADDRESS:Bitte Impressumsadresse in apps/api/.env.local eintragen}
-      email: ${MAIL_IMPRINT_EMAIL:${MAIL_FROM:no-reply@my-cami-classroom.local}}
+      email: ${MAIL_IMPRINT_EMAIL:${MAIL_FROM:no-reply@my-ezber-app.local}}
       url: ${MAIL_IMPRINT_URL:http://localhost:3000}
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}

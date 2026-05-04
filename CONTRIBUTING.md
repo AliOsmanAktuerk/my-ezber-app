@@ -1,6 +1,6 @@
 # Contributing
 
-Danke, dass du My Cami classroom verbessern möchtest.
+Danke, dass du My Ezber App verbessern möchtest.
 
 ## Grundsätze
 

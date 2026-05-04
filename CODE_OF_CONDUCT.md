@@ -1,6 +1,6 @@
 # Code of Conduct
 
-My Cami classroom soll ein freundliches, respektvolles Open-Source-Projekt bleiben.
+My Ezber App soll ein freundliches, respektvolles Open-Source-Projekt bleiben.
 
 ## Erwartetes Verhalten
 

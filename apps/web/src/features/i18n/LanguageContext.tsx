@@ -55,7 +55,7 @@ const translations = {
     secureRoutesText: 'Alle Verwaltungsrouten sind durch JWT geschützt und nur mit aktiver Sitzung erreichbar.',
     landingKicker: 'Open Source Lernverwaltung',
     landingIntro:
-      'Eine freie Verwaltungsoberfläche für Kurse, Räume, Accounts und Berechtigungen. My Cami classroom wird ehrenamtlich gepflegt und ist als gemeinschaftliches Open-Source-Projekt angelegt.',
+      'Eine freie Verwaltungsoberfläche für Kurse, Räume, Accounts und Berechtigungen. My Ezber App wird ehrenamtlich gepflegt und ist als gemeinschaftliches Open-Source-Projekt angelegt.',
     joinOrLogin: 'Mitmachen oder anmelden',
     viewApi: 'API ansehen',
     projectOverview: 'Projektübersicht',
@@ -68,7 +68,7 @@ const translations = {
     projectValues: 'Projektwerte',
     swaggerUi: 'Swagger UI',
     openApiJson: 'OpenAPI JSON',
-    copyright: '© 2026 My Cami classroom contributors. Frei nutzbar unter MIT-Lizenz.',
+    copyright: '© 2026 My Ezber App contributors. Frei nutzbar unter MIT-Lizenz.',
     checks: ['Open Source', 'Ehrenamtlich verwaltet', 'Swagger-dokumentierte REST API'],
     features: [
       {
@@ -134,7 +134,7 @@ const translations = {
     secureRoutesText: 'All administration routes are protected by JWT and require an active session.',
     landingKicker: 'Open source classroom management',
     landingIntro:
-      'A free administration interface for courses, rooms, accounts and permissions. My Cami classroom is maintained by volunteers and built as a collaborative open-source project.',
+      'A free administration interface for courses, rooms, accounts and permissions. My Ezber App is maintained by volunteers and built as a collaborative open-source project.',
     joinOrLogin: 'Contribute or sign in',
     viewApi: 'View API',
     projectOverview: 'Project overview',
@@ -147,7 +147,7 @@ const translations = {
     projectValues: 'Project values',
     swaggerUi: 'Swagger UI',
     openApiJson: 'OpenAPI JSON',
-    copyright: '© 2026 My Cami classroom contributors. Available under the MIT License.',
+    copyright: '© 2026 My Ezber App contributors. Available under the MIT License.',
     checks: ['Open source', 'Volunteer-run', 'Swagger-documented REST API'],
     features: [
       {
@@ -213,7 +213,7 @@ const translations = {
     secureRoutesText: 'Tüm yönetim rotaları JWT ile korunur ve aktif oturum gerektirir.',
     landingKicker: 'Açık kaynak sınıf yönetimi',
     landingIntro:
-      'Kurslar, odalar, hesaplar ve yetkiler için özgür bir yönetim arayüzü. My Cami classroom gönüllüler tarafından sürdürülür ve ortak bir açık kaynak projesi olarak geliştirilir.',
+      'Kurslar, odalar, hesaplar ve yetkiler için özgür bir yönetim arayüzü. My Ezber App gönüllüler tarafından sürdürülür ve ortak bir açık kaynak projesi olarak geliştirilir.',
     joinOrLogin: 'Katıl veya giriş yap',
     viewApi: "API'yi görüntüle",
     projectOverview: 'Proje özeti',
@@ -226,7 +226,7 @@ const translations = {
     projectValues: 'Proje değerleri',
     swaggerUi: 'Swagger UI',
     openApiJson: 'OpenAPI JSON',
-    copyright: '© 2026 My Cami classroom contributors. MIT Lisansı altında özgürce kullanılabilir.',
+    copyright: '© 2026 My Ezber App contributors. MIT Lisansı altında özgürce kullanılabilir.',
     checks: ['Açık kaynak', 'Gönüllü yönetim', 'Swagger belgeli REST API'],
     features: [
       {

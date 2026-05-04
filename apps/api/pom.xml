@@ -14,8 +14,8 @@
     <groupId>com.ezber</groupId>
     <artifactId>api</artifactId>
     <version>0.1.0</version>
-    <name>my-cami-classroom-api</name>
-    <description>My Cami classroom REST API</description>
+    <name>my-ezber-app-api</name>
+    <description>My Ezber App REST API</description>
 
     <properties>
         <java.version>21</java.version>

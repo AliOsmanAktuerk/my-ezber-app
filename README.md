@@ -1,6 +1,6 @@
-# My Cami classroom
+# My Ezber App
 
-My Cami classroom ist ein ehrenamtlich verwaltetes Open-Source-Projekt für Lern- und Kursverwaltung.
+My Ezber App ist ein ehrenamtlich verwaltetes Open-Source-Projekt für Lern- und Kursverwaltung.
 
 Das Monorepo nutzt React, TypeScript und Tailwind im Frontend sowie Spring Boot, JWT-Auth, REST-API und MySQL im Backend.
 Die Datenbankstruktur wird mit Flyway-Migrationen unter `apps/api/src/main/resources/db/migration` versioniert.
@@ -60,18 +60,18 @@ Für Google Registrierung und Login brauchst du eine OAuth Client-ID aus der Goo
 
 Backend:
 
-Für die lokale Entwicklung ist die Client-ID bereits in `application.yml` als Development-Default gesetzt. In Produktion solltest du sie trotzdem als Umgebungsvariable setzen:
+Setze die Client-ID lokal und in Produktion als Umgebungsvariable:
 
 ```bash
-GOOGLE_CLIENT_ID=502571807799-4vn2lsldle120j68t700or8nlk2m5plb.apps.googleusercontent.com
+GOOGLE_CLIENT_ID=your-google-oauth-client-id.apps.googleusercontent.com
 ```
 
 Frontend:
 
-Die lokale Datei `apps/web/.env.local` enthält bereits:
+In `apps/web/.env.local` setzt du:
 
 ```bash
-VITE_GOOGLE_CLIENT_ID=502571807799-4vn2lsldle120j68t700or8nlk2m5plb.apps.googleusercontent.com
+VITE_GOOGLE_CLIENT_ID=your-google-oauth-client-id.apps.googleusercontent.com
 ```
 
 Ohne diese Werte bleibt der Google-Button deaktiviert. Nach erfolgreicher Google-Prüfung erstellt das Backend bei Bedarf einen lokalen Account und gibt wie beim normalen Login ein eigenes JWT zurück.

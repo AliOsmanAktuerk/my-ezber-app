@@ -15,7 +15,7 @@ export function HeroTeaser() {
         </p>
         <div className="space-y-5">
           <h1 className="text-5xl font-bold tracking-normal text-slate-950 sm:text-6xl">
-            My Cami classroom
+            My Ezber App
           </h1>
           <p className="max-w-2xl text-xl leading-9 text-slate-700">
             {t('landingIntro')}

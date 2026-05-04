@@ -24,7 +24,7 @@ export function AppShell() {
               <ShieldCheck size={20} aria-hidden="true" />
             </div>
             <div>
-              <p className="font-bold">My Cami classroom</p>
+              <p className="font-bold">My Ezber App</p>
               <p className="text-xs text-slate-500">{t('protectedArea')}</p>
             </div>
           </div>

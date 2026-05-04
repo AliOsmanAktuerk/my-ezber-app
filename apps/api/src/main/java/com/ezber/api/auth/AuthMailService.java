@@ -49,7 +49,7 @@ public class AuthMailService {
             "E-Mail-Adresse bestätigen",
             "E-Mail bestätigen",
             "Bestätige deine E-Mail-Adresse",
-            "Hallo " + name + ", bitte bestätige deine E-Mail-Adresse, damit du My Cami classroom nutzen kannst.",
+            "Hallo " + name + ", bitte bestätige deine E-Mail-Adresse, damit du My Ezber App nutzen kannst.",
             "E-Mail bestätigen",
             link,
             "Wenn du dieses Konto nicht erstellt hast, kannst du diese E-Mail ignorieren."
@@ -121,7 +121,7 @@ public class AuthMailService {
               <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>My Cami classroom</title>
+                <title>My Ezber App</title>
               </head>
               <body style="margin:0;background:#f8fafc;color:#0f172a;font-family:Arial,Helvetica,sans-serif;">
                 <span style="display:none!important;visibility:hidden;opacity:0;color:transparent;height:0;width:0;overflow:hidden;">%s</span>
@@ -131,7 +131,7 @@ public class AuthMailService {
                       <table role="presentation" width="100%%" cellspacing="0" cellpadding="0" style="max-width:600px;background:#ffffff;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">
                         <tr>
                           <td style="background:#0f172a;padding:24px 28px;color:#ffffff;">
-                            <div style="font-size:20px;font-weight:700;">My Cami classroom</div>
+                            <div style="font-size:20px;font-weight:700;">My Ezber App</div>
                             <div style="margin-top:6px;color:#a7f3d0;font-size:14px;">Open Source Lernverwaltung</div>
                           </td>
                         </tr>

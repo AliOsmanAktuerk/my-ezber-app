@@ -16,7 +16,7 @@ public class OpenApiConfig {
     public OpenAPI ezberOpenApi() {
         return new OpenAPI()
             .info(new Info()
-                .title("My Cami classroom API")
+                .title("My Ezber App API")
                 .version("0.1.0")
                 .description("REST API für Auth, Verwaltung, Kurse, Räume und Matches."))
             .addSecurityItem(new SecurityRequirement().addList(BEARER_AUTH))
