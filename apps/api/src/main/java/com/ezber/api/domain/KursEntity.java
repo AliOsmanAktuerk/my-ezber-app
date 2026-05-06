@@ -2,9 +2,12 @@ package com.ezber.api.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -23,13 +26,18 @@ public class KursEntity {
     @Column(nullable = false)
     private String description;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "account_id", nullable = false)
+    private AccountEntity account;
+
     protected KursEntity() {
     }
 
-    public KursEntity(boolean publicCourse, String name, String description) {
+    public KursEntity(boolean publicCourse, String name, String description, AccountEntity account) {
         this.publicCourse = publicCourse;
         this.name = name;
         this.description = description;
+        this.account = account;
     }
 
     public Integer getId() {
@@ -46,6 +54,10 @@ public class KursEntity {
 
     public String getDescription() {
         return description;
+    }
+
+    public AccountEntity getAccount() {
+        return account;
     }
 
     public void update(boolean publicCourse, String name, String description) {

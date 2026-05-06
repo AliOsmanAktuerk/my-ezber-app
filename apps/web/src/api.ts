@@ -20,6 +20,9 @@ export type Course = {
   publicCourse: boolean;
   name: string;
   description: string;
+  accountId: number;
+  accountEmail: string;
+  accountName: string;
 };
 
 export type CoursePayload = {
@@ -53,24 +56,29 @@ export type RoomPayload = {
   description: string;
 };
 
-export type Account = {
+export type Classroom = {
   id: number;
-  email: string;
-  name: string;
-  hash: string;
-  rolleId: number;
-  rolleName: string;
+  accountId: number;
+  accountName: string;
+  accountEmail: string;
+  roomId: number;
+  roomDescription: string;
+  kursId: number;
+  kursName: string;
+  status: 'INVITED' | 'JOINED';
 };
 
-export type AccountPayload = {
-  email: string;
-  password: string;
-  rolleId: number;
-};
-
-export type Role = {
+export type ClassroomAccount = {
   id: number;
   name: string;
+  email: string;
+  status: 'INVITED' | 'JOINED';
+};
+
+export type ClassroomPayload = {
+  accountId: number;
+  roomId: number;
+  kursId: number;
 };
 
 export type MessageResponse = {
@@ -246,16 +254,8 @@ export function updateRoom(token: string, id: number, payload: RoomPayload) {
   });
 }
 
-export function getAccounts(token: string) {
-  return request<Account[]>('/api/accounts', {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-}
-
-export function createAccount(token: string, payload: AccountPayload) {
-  return request<Account>('/api/accounts', {
+export function createClassroom(token: string, payload: ClassroomPayload) {
+  return request<Classroom>('/api/classrooms', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -264,20 +264,28 @@ export function createAccount(token: string, payload: AccountPayload) {
   });
 }
 
-export function updateAccount(token: string, id: number, payload: AccountPayload) {
-  return request<Account>(`/api/accounts/${id}`, {
-    method: 'PUT',
+export function getClassrooms(token: string) {
+  return request<Classroom[]>('/api/classrooms', {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+export function getClassroomAccounts(token: string, classroomId: number) {
+  return request<ClassroomAccount[]>(`/api/classrooms/${classroomId}/accounts`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+export function inviteClassroomAccount(token: string, classroomId: number, payload: { email: string }) {
+  return request<Classroom>(`/api/classrooms/${classroomId}/invite`, {
+    method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(payload),
-  });
-}
-
-export function getRoles(token: string) {
-  return request<Role[]>('/api/roles', {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
   });
 }

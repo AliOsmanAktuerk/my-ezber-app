@@ -30,7 +30,15 @@ final class DomainMapper {
     }
 
     static KursResponse toResponse(KursEntity kurs) {
-        return new KursResponse(kurs.getId(), kurs.isPublicCourse(), kurs.getName(), kurs.getDescription());
+        return new KursResponse(
+            kurs.getId(),
+            kurs.isPublicCourse(),
+            kurs.getName(),
+            kurs.getDescription(),
+            kurs.getAccount().getId(),
+            kurs.getAccount().getEmail(),
+            kurs.getAccount().getName()
+        );
     }
 
     static KursItemResponse toResponse(KursItemEntity item) {
@@ -41,8 +49,13 @@ final class DomainMapper {
         return new ClassroomResponse(
             classroom.getId(),
             classroom.getAccount().getId(),
+            classroom.getAccount().getName(),
+            classroom.getAccount().getEmail(),
             classroom.getRoom().getId(),
-            classroom.getKurs().getId()
+            classroom.getRoom().getDescription(),
+            classroom.getKurs().getId(),
+            classroom.getKurs().getName(),
+            classroom.getStatus().name()
         );
     }
 

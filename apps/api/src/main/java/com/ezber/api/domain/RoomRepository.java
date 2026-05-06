@@ -13,4 +13,7 @@ public interface RoomRepository extends JpaRepository<RoomEntity, Integer> {
     @Override
     @EntityGraph(attributePaths = "owner")
     Optional<RoomEntity> findById(Integer id);
+
+    @EntityGraph(attributePaths = "owner")
+    List<RoomEntity> findByOwnerEmailIgnoreCase(String ownerEmail);
 }

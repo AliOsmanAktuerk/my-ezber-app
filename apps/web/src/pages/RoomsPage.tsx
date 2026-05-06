@@ -7,9 +7,9 @@ import {
   type SortingState,
   useReactTable,
 } from '@tanstack/react-table';
-import { ArrowDownUp, DoorOpen, Pencil, Plus, RefreshCw, Save, Search, UserRound, X } from 'lucide-react';
+import { ArrowDownUp, Link2, Pencil, Plus, RefreshCw, Save, Search, UserRound, X } from 'lucide-react';
 import { type FormEvent, useEffect, useMemo, useState } from 'react';
-import { createRoom, getRooms, type Room, updateRoom } from '../api';
+import { createClassroom, createRoom, getCourses, getRooms, type Course, type Room, updateRoom } from '../api';
 import { useAuth } from '../features/auth/AuthContext';
 import { useLanguage } from '../features/i18n/LanguageContext';
 
@@ -31,6 +31,13 @@ export function RoomsPage() {
   const [formError, setFormError] = useState('');
   const [saving, setSaving] = useState(false);
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  const [selectedCourseId, setSelectedCourseId] = useState('');
+  const [isMergeModalOpen, setIsMergeModalOpen] = useState(false);
+  const [loadingCourses, setLoadingCourses] = useState(false);
+  const [mergeError, setMergeError] = useState('');
+  const [savingMerge, setSavingMerge] = useState(false);
 
   async function loadRooms() {
     setLoading(true);
@@ -76,6 +83,35 @@ export function RoomsPage() {
     setIsModalOpen(true);
   }
 
+  async function openMergeModal(room: Room) {
+    setSelectedRoom(room);
+    setSelectedCourseId('');
+    setMergeError('');
+    setIsMergeModalOpen(true);
+    setLoadingCourses(true);
+
+    try {
+      const nextCourses = await getCourses(token);
+      setCourses(nextCourses);
+      setSelectedCourseId(nextCourses[0]?.id ? String(nextCourses[0].id) : '');
+    } catch (requestError) {
+      setMergeError(requestError instanceof Error ? requestError.message : t('genericError'));
+    } finally {
+      setLoadingCourses(false);
+    }
+  }
+
+  function closeMergeModal() {
+    if (savingMerge) {
+      return;
+    }
+
+    setIsMergeModalOpen(false);
+    setSelectedRoom(null);
+    setSelectedCourseId('');
+    setMergeError('');
+  }
+
   async function handleSaveRoom(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFormError('');
@@ -110,6 +146,35 @@ export function RoomsPage() {
     }
   }
 
+  async function handleCreateClassroom(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setMergeError('');
+
+    const payload = {
+      accountId: selectedRoom?.ownerId ?? user?.id ?? 0,
+      roomId: selectedRoom?.id ?? 0,
+      kursId: Number(selectedCourseId),
+    };
+
+    if (!payload.accountId || !payload.roomId || !payload.kursId) {
+      setMergeError(t('classroomRequiredFields'));
+      return;
+    }
+
+    setSavingMerge(true);
+
+    try {
+      await createClassroom(token, payload);
+      setIsMergeModalOpen(false);
+      setSelectedRoom(null);
+      setSelectedCourseId('');
+    } catch (requestError) {
+      setMergeError(requestError instanceof Error ? requestError.message : t('genericError'));
+    } finally {
+      setSavingMerge(false);
+    }
+  }
+
   const columns = useMemo(
     () => [
       columnHelper.accessor('id', {
@@ -136,11 +201,20 @@ export function RoomsPage() {
       columnHelper.display({
         id: 'actions',
         header: t('actions'),
-        cell: (info) => (
-          <button className="btn-icon" type="button" onClick={() => openEditModal(info.row.original)} aria-label={t('editRoom')}>
-            <Pencil size={17} aria-hidden="true" />
-          </button>
-        ),
+        cell: (info) => {
+          const room = info.row.original;
+
+          return (
+            <div className="flex items-center gap-2">
+              <button className="btn-icon" type="button" onClick={() => openMergeModal(room)} aria-label={t('mergeRoomCourse')}>
+                <Link2 size={17} aria-hidden="true" />
+              </button>
+              <button className="btn-icon" type="button" onClick={() => openEditModal(room)} aria-label={t('editRoom')}>
+                <Pencil size={17} aria-hidden="true" />
+              </button>
+            </div>
+          );
+        },
       }),
     ],
     [t],
@@ -319,6 +393,65 @@ export function RoomsPage() {
                 <button className="btn-primary" type="submit" disabled={saving}>
                   <Save size={18} aria-hidden="true" />
                   {saving ? t('saving') : editingRoom ? t('updateRoom') : t('saveRoom')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      ) : null}
+
+      {isMergeModalOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4">
+          <div className="w-full max-w-xl rounded-lg bg-white shadow-xl">
+            <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4">
+              <div>
+                <p className="text-sm font-semibold text-emerald-700">{t('classroom')}</p>
+                <h3 className="text-lg font-bold text-slate-950">{t('mergeRoomCourse')}</h3>
+              </div>
+              <button
+                type="button"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                onClick={closeMergeModal}
+                aria-label={t('close')}
+              >
+                <X size={20} aria-hidden="true" />
+              </button>
+            </div>
+
+            <form className="space-y-4 p-5" onSubmit={handleCreateClassroom}>
+              {mergeError ? (
+                <div className="rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{mergeError}</div>
+              ) : null}
+
+              <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
+                <p className="text-xs font-semibold uppercase text-slate-500">{t('rooms')}</p>
+                <p className="mt-1 text-sm font-semibold text-slate-800">{selectedRoom?.description}</p>
+              </div>
+
+              <label className="field">
+                {t('courses')}
+                <select
+                  value={selectedCourseId}
+                  onChange={(event) => setSelectedCourseId(event.target.value)}
+                  disabled={loadingCourses}
+                  required
+                >
+                  <option value="">{loadingCourses ? t('loadingCourses') : t('selectCourse')}</option>
+                  {courses.map((course) => (
+                    <option key={course.id} value={course.id}>
+                      {course.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
+                <button className="btn-secondary" type="button" onClick={closeMergeModal} disabled={savingMerge}>
+                  {t('cancel')}
+                </button>
+                <button className="btn-primary" type="submit" disabled={savingMerge || loadingCourses}>
+                  <Link2 size={18} aria-hidden="true" />
+                  {savingMerge ? t('saving') : t('createClassroom')}
                 </button>
               </div>
             </form>

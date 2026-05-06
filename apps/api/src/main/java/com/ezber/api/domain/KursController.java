@@ -3,6 +3,7 @@ package com.ezber.api.domain;
 import com.ezber.api.domain.dto.KursRequest;
 import com.ezber.api.domain.dto.KursResponse;
 import jakarta.validation.Valid;
+import java.security.Principal;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -17,19 +18,19 @@ public class KursController {
     }
 
     @GetMapping
-    public List<KursResponse> findAll() {
-        return service.findAll();
+    public List<KursResponse> findAll(Principal principal) {
+        return service.findAll(principal.getName());
     }
 
     @GetMapping("/{id}")
-    public KursResponse findById(@PathVariable Integer id) {
-        return service.findById(id);
+    public KursResponse findById(@PathVariable Integer id, Principal principal) {
+        return service.findById(id, principal.getName());
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public KursResponse create(@Valid @RequestBody KursRequest request) {
-        return service.create(request);
+    public KursResponse create(@Valid @RequestBody KursRequest request, Principal principal) {
+        return service.create(request, principal.getName());
     }
 
     @PutMapping("/{id}")

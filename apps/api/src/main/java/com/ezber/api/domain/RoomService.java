@@ -3,8 +3,10 @@ package com.ezber.api.domain;
 import com.ezber.api.domain.dto.RoomRequest;
 import com.ezber.api.domain.dto.RoomResponse;
 import java.util.List;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class RoomService {
@@ -16,12 +18,18 @@ public class RoomService {
         this.lookup = lookup;
     }
 
-    public List<RoomResponse> findAll() {
-        return repository.findAll().stream().map(DomainMapper::toResponse).toList();
+    public List<RoomResponse> findAll(String ownerEmail) {
+        return repository.findByOwnerEmailIgnoreCase(ownerEmail).stream().map(DomainMapper::toResponse).toList();
     }
 
-    public RoomResponse findById(Integer id) {
-        return DomainMapper.toResponse(lookup.room(id));
+    public RoomResponse findById(Integer id, String ownerEmail) {
+        var room = lookup.room(id);
+
+        if (!room.getOwner().getEmail().equalsIgnoreCase(ownerEmail)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Room not found");
+        }
+
+        return DomainMapper.toResponse(room);
     }
 
     @Transactional

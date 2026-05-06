@@ -1,15 +1,14 @@
-import { BookOpen, DoorOpen, KeyRound, ListChecks, LogOut, ShieldCheck, UsersRound } from 'lucide-react';
+import { BookOpen, DoorOpen, KeyRound, LogOut, School, ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
 import { LanguageSelect } from './LanguageSelect';
 import { useAuth } from '../features/auth/AuthContext';
 import { useLanguage } from '../features/i18n/LanguageContext';
+import { ClassroomsPage } from '../pages/ClassroomsPage';
 import { CoursesPage } from '../pages/CoursesPage';
-import { CourseItemsPage } from '../pages/CourseItemsPage';
 import { RoomsPage } from '../pages/RoomsPage';
-import { UsersPage } from '../pages/UsersPage';
 
-const navIcons = [ShieldCheck, BookOpen, ListChecks, DoorOpen, UsersRound];
-const navKeys = ['dashboard', 'courses', 'courseItems', 'rooms', 'users'] as const;
+const navIcons = [ShieldCheck, BookOpen, DoorOpen, School];
+const navKeys = ['dashboard', 'courses', 'rooms', 'classrooms'] as const;
 type NavKey = (typeof navKeys)[number];
 
 export function AppShell() {
@@ -71,7 +70,7 @@ export function AppShell() {
             </div>
           </header>
 
-          <nav className="grid grid-cols-5 gap-2 border-b border-slate-200 bg-white px-3 py-2 lg:hidden">
+          <nav className="grid grid-cols-4 gap-2 border-b border-slate-200 bg-white px-3 py-2 lg:hidden">
             {navKeys.map((navKey, index) => {
               const Icon = navIcons[index];
               const isActive = activeSection === navKey;
@@ -94,17 +93,13 @@ export function AppShell() {
             <div className="p-5">
               <CoursesPage />
             </div>
-          ) : activeSection === 'courseItems' ? (
-            <div className="p-5">
-              <CourseItemsPage />
-            </div>
           ) : activeSection === 'rooms' ? (
             <div className="p-5">
               <RoomsPage />
             </div>
-          ) : activeSection === 'users' ? (
+          ) : activeSection === 'classrooms' ? (
             <div className="p-5">
-              <UsersPage />
+              <ClassroomsPage />
             </div>
           ) : (
             <div className="grid gap-5 p-5 lg:grid-cols-[1fr_360px]">

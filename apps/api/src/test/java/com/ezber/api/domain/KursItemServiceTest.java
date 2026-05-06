@@ -25,7 +25,7 @@ class KursItemServiceTest {
 
     @Test
     void findAllCanFilterByCourseId() {
-        var kurs = new KursEntity(true, "Java", "Basics");
+        var kurs = new KursEntity(true, "Java", "Basics", new AccountEntity("owner@example.com", "Owner", "password123", new RolleEntity("USER")));
         when(repository.findByKursId(3)).thenReturn(List.of(new KursItemEntity("Intro", false, kurs)));
 
         var responses = service.findAll(3);
@@ -36,7 +36,7 @@ class KursItemServiceTest {
 
     @Test
     void createUsesReferencedCourse() {
-        var kurs = new KursEntity(true, "Java", "Basics");
+        var kurs = new KursEntity(true, "Java", "Basics", new AccountEntity("owner@example.com", "Owner", "password123", new RolleEntity("USER")));
         when(lookup.kurs(3)).thenReturn(kurs);
         when(repository.save(any(KursItemEntity.class))).thenReturn(new KursItemEntity("Intro", true, kurs));
 

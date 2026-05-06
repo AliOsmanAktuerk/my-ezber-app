@@ -1,0 +1,2 @@
+ALTER TABLE `classroom`
+  ADD COLUMN `status` VARCHAR(20) NOT NULL DEFAULT 'JOINED' AFTER `kurse_id`;
